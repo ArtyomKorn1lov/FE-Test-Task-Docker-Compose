@@ -1,0 +1,53 @@
+version: "3.1"
+
+services:
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "8001:3000"
+    volumes:
+      - ./frontend/:/app/
+    privileged: true
+    restart: unless-stopped
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    links:
+      - mysql
+    ports:
+      - "8002:3000"
+    volumes:
+      - ./backend/:/app/
+    privileged: true
+    restart: unless-stopped
+
+  mysql:
+    build:
+      context: ./docker/mysql
+      dockerfile: Dockerfile
+    volumes:
+      - mysql:/var/lib/mysql
+    env_file:
+      - ./config/mysql/env.yml
+    restart: unless-stopped
+
+  phpmyadmin:
+    image: phpmyadmin
+    links:
+      - mysql
+    ports:
+      - "8003:80"
+    environment:
+      - PMA_ARBITRARY=1
+      - PMA_HOSTS=mysql
+    volumes:
+      - phpmyadmin:/sessions
+    restart: unless-stopped
+
+volumes:
+  mysql:
+  phpmyadmin:
